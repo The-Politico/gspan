@@ -10,60 +10,28 @@ class TranscriptParser:
     """
     Cleans Google Doc HTML, then converts into JSON
     """
-
     def __init__(self, html_string):
-        self.end_transcript_regex = re.compile(
-            r'.*LIVE\sTRANSCRIPT\sHAS\sENDED.*',
-            re.UNICODE
-        )
-        self.do_not_write_regex = re.compile(
-            r'.*DO\s*NOT\s*WRITE\s*BELOW\s*THIS\s*LINE.*',
-            re.UNICODE
-        )
-        self.end_fact_check_regex = re.compile(
-            r'^\s*[Ee][Nn][Dd]\s*$',
-            re.UNICODE
-        )
-        self.anno_start_marker_regex = re.compile(
-            r'^\s*\+{50,}\s*$',
-            re.UNICODE
-        )
-        self.anno_end_marker_regex = re.compile(
-            r'^\s*-{50,}\s*$',
-            re.UNICODE
-        )
-        self.frontmatter_marker_regex = re.compile(
-            r'^\s*-{3}\s*$',
-            re.UNICODE
-        )
-        self.extract_metadata_regex = re.compile(
-            r'^(.*?):(.*)$',
-            re.UNICODE
-        )
-
-        self.speaker_regex = re.compile(
-            r'^[A-Z\s.-]+(\s\[.*\])?:',
-            re.UNICODE
-        )
-        self.soundbite_regex = re.compile(
-            r'^\s*:',
-            re.UNICODE
-        )
-        self.extract_speaker_metadata_regex = re.compile(
-            r'^\s*(<.*?>)?([A-Z0-9\s.-]+)\s*(?:\[(.*)\]\s*)?:\s*(.*)',
-            re.UNICODE
-        )
-        self.extract_soundbite_metadata_regex = re.compile(
-            r'^\s*(?:<.*?>)?\s*:\[\((.*)\)\]',
-            re.UNICODE
-        )
-        self.extract_author_metadata_regex = re.compile(
-            r'^.*\((.+)\)\s*$',
-            re.UNICODE
-        )
+        self.regexes = {
+            'end_transcript': re.compile(
+                r'.*LIVE\sTRANSCRIPT\sHAS\sENDED.*'),
+            'do_not_write': re.compile(
+                r'.*DO\s*NOT\s*WRITE\s*BELOW\s*THIS\s*LINE.*'),
+            'end_fact_check': re.compile(r'^\s*[Ee][Nn][Dd]\s*$'),
+            'anno_start_marker': re.compile(r'^\s*\+{50,}\s*$'),
+            'anno_end_marker': re.compile(r'^\s*-{50,}\s*$'),
+            'frontmatter_marker': re.compile(r'^\s*-{3}\s*$'),
+            'extract_metadata': re.compile(r'^(.*?):(.*)$'),
+            'speaker': re.compile(r'^[A-Z\s.-]+(\s\[.*\])?:'),
+            'soundbite': re.compile(r'^\s*:'),
+            'extract_speaker_metadata': re.compile(
+                r'^\s*(<.*?>)?([A-Z0-9\s.-]+)\s*(?:\[(.*)\]\s*)?:\s*(.*)'),
+            'extract_soundbite_metadata': re.compile(
+                r'^\s*(?:<.*?>)?\s*:\[\((.*)\)\]'),
+            'extract_author_metadata': re.compile(r'^.*\((.+)\)\s*$')
+        }
 
         self.doc = CopyDoc(html_string)
-        self.parse()
+        self.transcript = self.parse()
 
     def parse(self):
         """
@@ -72,15 +40,15 @@ class TranscriptParser:
         self.remove_administrivia(self.doc.soup)
         raw = self.separate_components(self.doc.soup)
         contents = self.parse_raw_contents(raw)
-        print(contents)
+        return contents
 
     def remove_administrivia(self, soup):
         hr = soup.hr
 
         if hr:
-            if hr.find('p', text=self.end_fact_check_regex):
+            if hr.find('p', text=self.regexes['end_fact_check']):
                 hr.extract()
-            elif hr.find('p', text=self.end_transcript_regex):
+            elif hr.find('p', text=self.regexes['end_transcript']):
                 hr.extract()
             else:
                 for child in hr.children:
@@ -88,7 +56,7 @@ class TranscriptParser:
                         after_hr_text = child.string
                     else:
                         after_hr_text = child.get_text()
-                    m = self.do_not_write_regex.match(after_hr_text)
+                    m = self.regexes['do_not_write'].match(after_hr_text)
                     if m:
                         child.extract()
                 hr.unwrap()
@@ -132,7 +100,7 @@ class TranscriptParser:
                 raw_contents = []
                 for tag in p['contents']:
                     text = tag.get_text()
-                    m = self.frontmatter_marker_regex.match(text)
+                    m = self.regexes['frontmatter_marker'].match(text)
                     if m:
                         marker_counter += 1
                     else:
@@ -179,7 +147,7 @@ class TranscriptParser:
         metadata = {}
         for tag in contents:
             text = tag.get_text()
-            m = self.extract_metadata_regex.match(text)
+            m = self.regexes['extract_metadata'].match(text)
             if m:
                 key = m.group(1).strip().lower()
                 value = m.group(2).strip()
@@ -195,10 +163,10 @@ class TranscriptParser:
         TODO
         """
         text = tag.get_text()
-        if self.speaker_regex.match(text):
+        if self.regexes['speaker'].match(text):
             typ = 'speaker'
             context = self.process_speaker_transcript(tag)
-        elif self.soundbite_regex.match(text):
+        elif self.regexes['soundbite'].match(text):
             typ = 'soundbite'
             context = self.process_soundbite_transcript(tag)
         else:
@@ -211,7 +179,7 @@ class TranscriptParser:
         parses speaker paragraphs.
         transforming into the desired output markup
         """
-        m = self.extract_speaker_metadata_regex.match(contents)
+        m = self.regexes['extract_speaker_metadata'].match(contents)
         if m:
             speaker = m.group(2).strip()
             try:
@@ -242,7 +210,7 @@ class TranscriptParser:
         parses speaker paragraphs.
         transforming into the desired output markup
         """
-        m = self.extract_soundbite_metadata_regex.match(contents)
+        m = self.regexes['extract_soundbite_metadata'].match(contents)
         if m:
             clean_text = '(%s)' % m.group(1)
         else:
@@ -273,7 +241,7 @@ class TranscriptParser:
         Checks for the beginning of a new post
         """
         text = tag.get_text()
-        m = self.anno_start_marker_regex.match(text)
+        m = self.regexes['anno_start_marker'].match(text)
         if m:
             return True
         else:
@@ -284,7 +252,7 @@ class TranscriptParser:
         Checks for the beginning of a new post
         """
         text = tag.get_text()
-        m = self.anno_end_marker_regex.match(text)
+        m = self.regexes['anno_end_marker'].match(text)
         if m:
             return True
         else:
