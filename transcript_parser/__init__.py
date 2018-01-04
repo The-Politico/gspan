@@ -191,10 +191,6 @@ class TranscriptParser:
         m = self.regexes['extract_speaker_metadata'].match(contents)
         if m:
             speaker = m.group(2).strip()
-            try:
-                speaker_class = self.SPEAKERS[speaker]
-            except KeyError:
-                speaker_class = 'speaker'
             timestamp = m.group(3)
             if m.group(1):
                 clean_text = m.group(1) + m.group(4)
@@ -206,7 +202,6 @@ class TranscriptParser:
         markdown = self.convert_to_markdown(clean_text)
 
         context = {
-            'speaker_class': speaker_class,
             'speaker': speaker,
             'timestamp': timestamp,
             'transcript_text': markdown

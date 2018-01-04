@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='politico-transcript-parser',
-    version='0.0.1',
+    version='0.0.2',
     description='',
     url='https://github.com/The-Politico/politico-transcript-parser',
     author='POLITICO interactive news',
