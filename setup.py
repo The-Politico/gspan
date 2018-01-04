@@ -25,6 +25,9 @@ setup(
 
     install_requires=['html2text', 'copydoc'],
 
+    dependency_links=[
+        "https://github.com/The-Politico/copydoc/tarball/master#egg=copydoc"
+    ],
     extras_require={
         'test': ['pytest'],
     },
