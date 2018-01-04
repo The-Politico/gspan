@@ -23,7 +23,7 @@ setup(
 
     packages=find_packages(exclude=['docs', 'tests']),
 
-    install_requires=[],
+    install_requires=['html2text', 'copydoc'],
 
     extras_require={
         'test': ['pytest'],
