@@ -10,7 +10,10 @@ class TranscriptParser:
     """
     Cleans Google Doc HTML, then converts into JSON
     """
-    def __init__(self, html_string):
+    def __init__(self, html_string, author_data={}, default_author="POLITICO"):
+        self.authors = author_data
+        self.default_author = default_author
+
         self.regexes = {
             'end_transcript': re.compile(
                 r'.*LIVE\sTRANSCRIPT\sHAS\sENDED.*'),
@@ -94,7 +97,10 @@ class TranscriptParser:
         contents = []
         for p in data:
             if p['type'] == 'annotation':
-                annotation = {}
+                annotation = {
+                    'type': 'annotation',
+                    'data': {}
+                }
                 marker_counter = 0
                 raw_metadata = []
                 raw_contents = []
@@ -113,22 +119,21 @@ class TranscriptParser:
                 metadata = self.process_metadata(raw_metadata)
 
                 for k, v in metadata.items():
-                    annotation[k] = v
+                    annotation['data'][k] = v
 
-                annotation['contents'] = self.process_annotation_contents(
-                    raw_contents
-                )
-                annotation['type'] = 'annotation'
+                content = self.process_annotation_contents(raw_contents)
+
+                annotation['data']['content'] = content
                 contents.append(annotation)
             else:
-                transcript = {}
-                typ, context = self.process_transcript_content(
+                content_block = {}
+                typ, data = self.process_transcript_content(
                     p['content']
                 )
-                transcript['type'] = typ
-                transcript['context'] = context
-                transcript['published'] = True
-                contents.append(transcript)
+                content_block['type'] = typ
+                content_block['data'] = data
+                content_block['published'] = True
+                contents.append(content_block)
 
         return contents
 
@@ -153,6 +158,10 @@ class TranscriptParser:
                 value = m.group(2).strip()
                 if key == 'published':
                     value = True if value == 'Yes' else False
+
+                if key == 'author':
+                    value = self.authors.get(value, self.default_author)
+
                 metadata[key] = value
             else:
                 print('Could not parse metadata. Text: %s' % text)
@@ -165,13 +174,13 @@ class TranscriptParser:
         text = tag.get_text()
         if self.regexes['speaker'].match(text):
             typ = 'speaker'
-            context = self.process_speaker_transcript(tag)
+            context = self.process_speaker_transcript(text)
         elif self.regexes['soundbite'].match(text):
             typ = 'soundbite'
-            context = self.process_soundbite_transcript(tag)
+            context = self.process_soundbite_transcript(text)
         else:
-            typ = 'other'
-            context = self.process_other_transcript(tag)
+            typ = 'transcript'
+            context = self.process_other_transcript(text)
         return typ, context
 
     def process_speaker_transcript(self, contents):
