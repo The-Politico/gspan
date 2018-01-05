@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='politico-transcript-parser',
-    version='0.0.2',
+    name='gspan',
+    version='0.0.1',
     description='',
-    url='https://github.com/The-Politico/politico-transcript-parser',
+    url='https://github.com/The-Politico/gspan',
     author='POLITICO interactive news',
     author_email='interactives@politico.com',
     license='MIT',
@@ -23,8 +23,12 @@ setup(
 
     packages=find_packages(exclude=['docs', 'tests']),
 
-    install_requires=['html2text', 'copydoc'],
-
+    install_requires=['html2text', 'copydoc', 'cement'],
+    entry_points={
+        'console_scripts': (
+            'gspan = gspan.cli:main',
+        ),
+    },
     dependency_links=[
         "https://github.com/The-Politico/copydoc/tarball/master#egg=copydoc"
     ],

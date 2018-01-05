@@ -2,26 +2,30 @@
 
 # politico-transcript-parser
 
+### What is this?
+
+Gspan is a CLI that downloads an [anno-docs](https://github.com/nprapps/anno-docs)-formatted Google Doc and translates it into JSON.
+
 ### Quickstart
 
-```
-$ pip install politico-transcript-parser
-```
-
-Then, use in your project:
+Install gspan as a Python module.
 
 ```
-from transcript_parser import TranscriptParser
+$ pip install gspan
+```
 
-authors = {
-    'authorname@email.com': 'Author Name',
-    'anotherhuman@email.com': 'Another Human'
-}
+Then, you can use `gspan` as a command in your shell. To get JSON:
 
-with open('my_html_file.html') as f:
-    html = f.read()
-    parsed = TranscriptParser(html, authors=authors)
-    print(parsed.transcript)
+```
+$ gspan parse <Google Doc ID> > output.json
+```
+
+As a principle, `gspan` pipes all of its output to stdout, much like [csvkit](http://csvkit.readthedocs.io/en/1.0.2/) and [elex](http://elex.readthedocs.io/en/stable/).
+
+You can also download the raw Google Doc HTML and pipe that to a file:
+
+```
+$ gspan download <Google Doc ID> > download.html
 ```
 
 ### Testing

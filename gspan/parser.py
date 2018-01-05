@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 import html2text
+import json
+import os
 import re
+import sys
+import subprocess
 
 from copydoc import CopyDoc
 
@@ -10,7 +14,7 @@ class TranscriptParser:
     """
     Cleans Google Doc HTML, then converts into JSON
     """
-    def __init__(self, html_string, author_data={}, default_author="POLITICO"):
+    def __init__(self, doc_id, author_data={}, default_author="POLITICO"):
         self.authors = author_data
         self.default_author = default_author
 
@@ -33,8 +37,21 @@ class TranscriptParser:
             'extract_author_metadata': re.compile(r'^.*\((.+)\)\s*$')
         }
 
-        self.doc = CopyDoc(html_string)
+        self.html = self.download_gdoc_html(doc_id)
+        self.doc = CopyDoc(self.html)
         self.transcript = self.parse()
+
+    def download_gdoc_html(self, doc_id):
+        gdrive_output = subprocess.run(
+            ['gdrive', 'export', doc_id, '--mime', 'text/html'],
+            stdout=subprocess.PIPE
+        )
+        filename = str(gdrive_output.stdout).split("'")[1]
+        with open(filename) as f:
+            html = f.read()
+
+        os.remove(filename)
+        return html
 
     def parse(self):
         """
@@ -261,3 +278,6 @@ class TranscriptParser:
             return True
         else:
             return False
+
+    def to_json(self):
+        return json.dump(self.transcript, sys.stdout)
