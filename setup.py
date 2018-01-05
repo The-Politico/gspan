@@ -29,9 +29,6 @@ setup(
             'gspan = gspan.cli:main',
         ),
     },
-    dependency_links=[
-        "https://github.com/The-Politico/copydoc/tarball/master#egg=copydoc"
-    ],
     extras_require={
         'test': ['pytest'],
     },

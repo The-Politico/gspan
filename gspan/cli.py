@@ -38,6 +38,16 @@ class GspanBaseController(CementBaseController):
         parsed = TranscriptParser(self.app.pargs.key)
         print(parsed.html)
 
+    @expose(help="Prints output from copydoc")
+    def copydoc(self):
+        """
+        gspan download <Google doc id>
+
+        Downloads a Google Doc as HTML and pipes it to stdout
+        """
+        parsed = TranscriptParser(self.app.pargs.key)
+        print(parsed.doc)
+
 
 class GspanApp(CementApp):
     class Meta:

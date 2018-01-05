@@ -191,13 +191,13 @@ class TranscriptParser:
         text = tag.get_text()
         if self.regexes['speaker'].match(text):
             typ = 'speaker'
-            context = self.process_speaker_transcript(text)
+            context = self.process_speaker_transcript(tag)
         elif self.regexes['soundbite'].match(text):
             typ = 'soundbite'
-            context = self.process_soundbite_transcript(text)
+            context = self.process_soundbite_transcript(tag)
         else:
             typ = 'transcript'
-            context = self.process_other_transcript(text)
+            context = self.process_other_transcript(tag)
         return typ, context
 
     def process_speaker_transcript(self, contents):
@@ -205,7 +205,7 @@ class TranscriptParser:
         parses speaker paragraphs.
         transforming into the desired output markup
         """
-        m = self.regexes['extract_speaker_metadata'].match(contents)
+        m = self.regexes['extract_speaker_metadata'].match(str(contents))
         if m:
             speaker = m.group(2).strip()
             timestamp = m.group(3)
@@ -231,7 +231,7 @@ class TranscriptParser:
         parses speaker paragraphs.
         transforming into the desired output markup
         """
-        m = self.regexes['extract_soundbite_metadata'].match(contents)
+        m = self.regexes['extract_soundbite_metadata'].match(str(contents))
         if m:
             clean_text = '(%s)' % m.group(1)
         else:

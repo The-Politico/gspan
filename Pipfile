@@ -15,7 +15,7 @@ python_version = "3.6"
 pytest = "*"
 "flake8" = "*"
 "html2text" = "*"
-copydoc = {git = "https://github.com/The-Politico/copydoc.git", editable = true}
+copydoc = "*"
 cement = "*"
 
 
