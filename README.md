@@ -8,7 +8,14 @@ Gspan is a CLI that downloads an [anno-docs](https://github.com/nprapps/anno-doc
 
 ### Quickstart
 
-Install gspan as a Python module.
+Gspan depends on [gdrive](https://github.com/prasmussen/gdrive) to handle downloading files from Google Drive. Install it with homebrew and authenticate your account:
+
+```
+$ brew install gdrive
+$ gdrive list
+```
+
+Then, install gspan as a Python module.
 
 ```
 $ pip install gspan
