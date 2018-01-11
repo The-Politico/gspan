@@ -15,6 +15,9 @@ class TranscriptParser:
     Cleans Google Doc HTML, then converts into JSON
     """
     def __init__(self, doc_id, author_data={}, default_author="POLITICO"):
+        self.h = html2text.HTML2Text()
+        self.h.body_width = 0
+
         self.authors = author_data
         self.default_author = default_author
 
@@ -252,10 +255,12 @@ class TranscriptParser:
         return context
 
     def convert_to_markdown(self, text):
-        markdown = html2text.html2text(str(text))
-        cleaned = markdown.replace('\n', ' ').replace('\r', '')
+        markdown = self.h.handle(str(text))
 
-        return cleaned
+        if markdown.startswith('\n\n'):
+            markdown = markdown.replace('\n\n', '', 1)
+
+        return markdown
 
     def is_anno_start_marker(self, tag):
         """
