@@ -1,3 +1,5 @@
+import json
+
 from cement.core.controller import CementBaseController, expose
 from cement.core.foundation import CementApp
 from cement.ext.ext_logging import LoggingLogHandler
@@ -15,6 +17,11 @@ class GspanBaseController(CementBaseController):
             (['key'], dict(
                 action='store',
                 help='Google Doc key'
+            )),
+            (['-a, --authors'], dict(
+                action='store',
+                help='Supply author data',
+                dest='authors'
             ))
         ]
 
@@ -25,7 +32,16 @@ class GspanBaseController(CementBaseController):
 
         Parses a document and returns an HTML string
         """
-        parsed = TranscriptParser(self.app.pargs.key)
+        if self.app.pargs.authors:
+            author_file = self.app.pargs.authors
+
+            with open(author_file) as f:
+                authors = json.load(f)
+
+            parsed = TranscriptParser(self.app.pargs.key, author_data=authors)
+        else:
+            parsed = TranscriptParser(self.app.pargs.key)
+
         self.app.render(parsed.to_json())
 
     @expose(help="Downloads a Google Doc HTML file")

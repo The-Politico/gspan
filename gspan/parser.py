@@ -180,7 +180,14 @@ class TranscriptParser:
                     value = True if value == 'Yes' else False
 
                 if key == 'author':
-                    value = self.authors.get(value, self.default_author)
+                    found_author = False
+                    for author in self.authors:
+                        if author['email'] == value:
+                            found_author = True
+                            value = author
+
+                    if not found_author:
+                        value = self.default_author
 
                 metadata[key] = value
             else:
