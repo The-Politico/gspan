@@ -60,20 +60,24 @@ class TranscriptParser:
         """
         Parse all the annotation-specific content
         """
-        self.remove_administrivia(self.doc.soup)
+        doc_status = self.remove_administrivia(self.doc.soup)
         raw = self.separate_components(self.doc.soup)
-        contents = self.parse_raw_contents(raw)
+        contents = self.parse_raw_contents(raw, doc_status)
         return contents
 
     def remove_administrivia(self, soup):
+        status = None
         hr = soup.hr
 
         if hr:
             if hr.find('p', text=self.regexes['end_fact_check']):
+                status = 'after'
                 hr.extract()
             elif hr.find('p', text=self.regexes['end_transcript']):
+                status = 'after'
                 hr.extract()
             else:
+                status = 'live'
                 for child in hr.children:
                     if (child.string):
                         after_hr_text = child.string
@@ -83,6 +87,8 @@ class TranscriptParser:
                     if m:
                         child.extract()
                 hr.unwrap()
+
+        return status
 
     def separate_components(self, soup):
         result = []
@@ -110,11 +116,14 @@ class TranscriptParser:
 
         return result
 
-    def parse_raw_contents(self, data):
+    def parse_raw_contents(self, data, doc_status):
         """
         parse transcript and annotation objects
         """
-        contents = []
+        output = {
+            'status': doc_status
+        }
+        output['contents'] = []
         for p in data:
             if p['type'] == 'annotation':
                 annotation = {
@@ -144,7 +153,7 @@ class TranscriptParser:
                 content = self.process_annotation_contents(raw_contents)
 
                 annotation['data']['content'] = content
-                contents.append(annotation)
+                output['contents'].append(annotation)
             else:
                 content_block = {}
                 typ, data = self.process_transcript_content(
@@ -153,9 +162,9 @@ class TranscriptParser:
                 content_block['type'] = typ
                 content_block['data'] = data
                 content_block['published'] = True
-                contents.append(content_block)
+                output['contents'].append(content_block)
 
-        return contents
+        return output
 
     def process_annotation_contents(self, contents):
         """
