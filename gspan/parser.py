@@ -87,6 +87,8 @@ class TranscriptParser:
                     if m:
                         child.extract()
                 hr.unwrap()
+        else:
+            status = 'after'
 
         return status
 
