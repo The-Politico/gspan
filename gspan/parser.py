@@ -2,12 +2,21 @@
 
 import html2text
 import json
+import logging
 import os
 import re
 import sys
 import subprocess
 
 from copydoc import CopyDoc
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+    datefmt='%m-%d %H:%M',
+    filename='./gspan.log',
+    filemode='w'
+)
 
 
 class TranscriptParser:
@@ -20,6 +29,8 @@ class TranscriptParser:
 
         self.authors = author_data
         self.default_author = default_author
+
+        self.logger = logging.getLogger(__name__)
 
         self.regexes = {
             'end_transcript': re.compile(
@@ -202,7 +213,9 @@ class TranscriptParser:
 
                 metadata[key] = value
             else:
-                print('Could not parse metadata. Text: %s' % text)
+                self.logger.debug(
+                    'Could not parse metadata. Text: %s' % text
+                )
         return metadata
 
     def process_transcript_content(self, tag):
